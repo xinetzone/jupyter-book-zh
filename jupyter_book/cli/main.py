@@ -172,16 +172,15 @@ def build(
     BUILD_PATH = path_output if path_output is not None else found_config[0]
 
     # Set config for --individualpages option (pages, documents)
-    if individualpages:
-        if builder != "pdflatex":
-            _error(
-                """
+    if individualpages and builder != "pdflatex":
+        _error(
+            """
                 Specified option --individualpages only works with the
                 following builders:
 
                 pdflatex
                 """
-            )
+        )
 
     # Build Page
     if not PATH_SRC_FOLDER.is_dir():
@@ -199,7 +198,7 @@ def build(
             subdir = str(PATH_SRC_FOLDER.relative_to(BUILD_PATH))
         if subdir and subdir != ".":
             subdir = subdir.replace("/", "-")
-            subdir = subdir + "-" + PAGE_NAME
+            subdir = f'{subdir}-{PAGE_NAME}'
             BUILD_PATH = Path(BUILD_PATH).joinpath("_build", "_page", subdir)
         else:
             BUILD_PATH = Path(BUILD_PATH).joinpath("_build", "_page", PAGE_NAME)
@@ -220,7 +219,6 @@ def build(
             # --individualpages option set to True for page call
             "latex_individualpages": True,
         }
-    # Build Project
     else:
         build_type = "book"
         PAGE_NAME = None
@@ -461,10 +459,7 @@ def sphinx(ctx, path_source, config, toc):
         sourcedir=Path(full_path_source),
         cli_config=config_overrides,
     )
-    lines = []
-    for key in sorted(sphinx_config):
-        lines.append(f"{key} = {sphinx_config[key]!r}")
-
+    lines = [f"{key} = {sphinx_config[key]!r}" for key in sorted(sphinx_config)]
     click.echo("\n".join(lines))
 
 
@@ -476,11 +471,7 @@ def find_config_path(path: Path) -> Tuple[Path, bool]:
     if found then returns the path which has _config.yml,
     else returns the present dir as the path.
     """
-    if path.is_dir():
-        current_dir = path
-    else:
-        current_dir = path.parent
-
+    current_dir = path if path.is_dir() else path.parent
     if (current_dir / "_config.yml").is_file():
         return (current_dir, True)
 
@@ -565,8 +556,8 @@ def builder_specific_actions(
             path_pdf_output = path_pdf_output.joinpath("book.pdf")
             html_to_pdf(output_path.joinpath("index.html"), path_pdf_output)
         elif cmd_type == "page":
-            path_pdf_output = path_pdf_output.joinpath(page_name + ".pdf")
-            html_to_pdf(output_path.joinpath(page_name + ".html"), path_pdf_output)
+            path_pdf_output = path_pdf_output.joinpath(f'{page_name}.pdf')
+            html_to_pdf(output_path.joinpath(f'{page_name}.html'), path_pdf_output)
         path_pdf_output_rel = Path(op.relpath(path_pdf_output, Path()))
         _message_box(
             f"""\

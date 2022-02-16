@@ -226,10 +226,7 @@ def yaml_to_sphinx(yaml: dict):
         if yml_key in repository_config:
             theme_options[spx_key] = repository_config[yml_key]
 
-    # HTML
-    html = yaml.get("html")
-    if html:
-
+    if html := yaml.get("html"):
         for spx_key, yml_key in [
             ("html_favicon", "favicon"),
             ("html_baseurl", "baseurl"),
@@ -253,17 +250,14 @@ def yaml_to_sphinx(yaml: dict):
         # Pass through the buttons
         btns = ["use_repository_button", "use_edit_page_button", "use_issues_button"]
         use_buttons = {btn: html.get(btn) for btn in btns if btn in html}
-        if any(use_buttons.values()):
-            if not repository_config.get("url"):
-                raise ValueError(
-                    "To use 'repository' buttons, you must specify the repository URL"
-                )
+        if any(use_buttons.values()) and not repository_config.get("url"):
+            raise ValueError(
+                "To use 'repository' buttons, you must specify the repository URL"
+            )
         # Update our config
         theme_options.update(use_buttons)
 
-    # Parse and Rendering
-    parse = yaml.get("parse")
-    if parse:
+    if parse := yaml.get("parse"):
         # Enable extra extensions
         extensions = sphinx_config.get("myst_enable_extensions", [])
         # TODO: deprecate this in v0.11.0
@@ -296,9 +290,7 @@ def yaml_to_sphinx(yaml: dict):
             if ikey in parse:
                 sphinx_config[ikey] = parse.get(ikey)
 
-    # Execution
-    execute = yaml.get("execute")
-    if execute:
+    if execute := yaml.get("execute"):
         for spx_key, yml_key in [
             ("execution_allow_errors", "allow_errors"),
             ("execution_in_temp", "run_in_temp"),
@@ -315,9 +307,7 @@ def yaml_to_sphinx(yaml: dict):
             # Special case because YAML treats `off` as "False".
             sphinx_config["jupyter_execute_notebooks"] = "off"
 
-    # LaTeX
-    latex = yaml.get("latex")
-    if latex:
+    if latex := yaml.get("latex"):
         for spx_key, yml_key in [
             ("latex_engine", "latex_engine"),
             ("use_jupyterbook_latex", "use_jupyterbook_latex"),
@@ -331,9 +321,7 @@ def yaml_to_sphinx(yaml: dict):
     for key, val in yaml.get("latex", {}).get("latex_documents", {}).items():
         sphinx_config["latex_doc_overrides"][key] = val
 
-    # Sphinx Configuration
-    extra_extensions = yaml.get("sphinx", {}).get("extra_extensions")
-    if extra_extensions:
+    if extra_extensions := yaml.get("sphinx", {}).get("extra_extensions"):
         sphinx_config["extensions"] = get_default_sphinx_config()["extensions"]
 
         if not isinstance(extra_extensions, list):
